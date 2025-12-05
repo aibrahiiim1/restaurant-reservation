@@ -29,26 +29,48 @@ public class TablesController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index(int branchId)
+    public async Task<IActionResult> Index(int? branchId)
     {
-        var branch = await _context.Branches
+        // Get list of branches for filter dropdown
+        var branches = await _context.Branches
             .Include(b => b.Restaurant)
-            .FirstOrDefaultAsync(b => b.Id == branchId);
-
-        if (branch == null)
-        {
-            return NotFound();
-        }
-
-        var tables = await _context.Tables
-            .Where(t => t.BranchId == branchId)
-            .OrderBy(t => t.TableNumber)
+            .OrderBy(b => b.Restaurant.Name)
+            .ThenBy(b => b.Name)
             .ToListAsync();
-
-        ViewBag.BranchName = $"{branch.Restaurant.Name} - {branch.Name}";
+        
+        ViewBag.Branches = branches;
         ViewBag.BranchId = branchId;
 
-        return View(tables);
+        if (branchId.HasValue && branchId.Value > 0)
+        {
+            var branch = branches.FirstOrDefault(b => b.Id == branchId.Value);
+            if (branch == null)
+            {
+                return NotFound();
+            }
+
+            var tables = await _context.Tables
+                .Where(t => t.BranchId == branchId.Value)
+                .OrderBy(t => t.TableNumber)
+                .ToListAsync();
+
+            ViewBag.BranchName = $"{branch.Restaurant.Name} - {branch.Name}";
+            return View(tables);
+        }
+        else
+        {
+            // Show all tables across all branches
+            var tables = await _context.Tables
+                .Include(t => t.Branch)
+                .ThenInclude(b => b.Restaurant)
+                .OrderBy(t => t.Branch.Restaurant.Name)
+                .ThenBy(t => t.Branch.Name)
+                .ThenBy(t => t.TableNumber)
+                .ToListAsync();
+
+            ViewBag.BranchName = "All Branches";
+            return View(tables);
+        }
     }
 
     public async Task<IActionResult> Create(int branchId)

@@ -69,12 +69,16 @@ public class DashboardController : Controller
             TodayBookings = await bookingQuery.CountAsync(b => b.BookingDate.Date == today),
             PendingBookings = await bookingQuery.CountAsync(b => b.Status == BookingStatus.Pending),
             PendingReviews = await reviewQuery.CountAsync(r => !r.IsApproved),
-            TodayRevenue = await bookingQuery
+            TodayRevenue = (await bookingQuery
                 .Where(b => b.BookingDate.Date == today && b.DepositPaid)
-                .SumAsync(b => b.DepositAmount ?? 0),
-            MonthlyRevenue = await bookingQuery
+                .Select(b => b.DepositAmount ?? 0)
+                .ToListAsync())
+                .Sum(),
+            MonthlyRevenue = (await bookingQuery
                 .Where(b => b.BookingDate >= monthStart && b.DepositPaid)
-                .SumAsync(b => b.DepositAmount ?? 0),
+                .Select(b => b.DepositAmount ?? 0)
+                .ToListAsync())
+                .Sum(),
             RecentBookings = await bookingQuery
                 .OrderByDescending(b => b.CreatedAt)
                 .Take(10)

@@ -1,0 +1,164 @@
+@model RestaurantReservation.Web.Models.ViewModels.BookingDetailsViewModel
+@{
+    ViewData["Title"] = "Complete Your Booking";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Your Details</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Booking Summary -->
+                    <div class="alert alert-light border mb-4">
+                        <h6 class="mb-2"><strong>@Model.RestaurantName - @Model.BranchName</strong></h6>
+                        <div class="row small">
+                            <div class="col-6">
+                                <i class="bi bi-calendar me-1"></i>@Model.BookingDate.ToString("dddd, MMMM d, yyyy")
+                            </div>
+                            <div class="col-6">
+                                <i class="bi bi-clock me-1"></i>@Model.BookingTime.ToString(@"hh\:mm")
+                            </div>
+                            <div class="col-6">
+                                <i class="bi bi-people me-1"></i>@Model.PartySize guests
+                            </div>
+                            <div class="col-6">
+                                <i class="bi bi-grid me-1"></i>Table @Model.TableNumber (@Model.TableLocation)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Steps -->
+                    <div class="d-flex justify-content-between mb-4">
+                        <div class="text-center flex-fill">
+                            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-check"></i>
+                            </div>
+                            <div class="small mt-1">Date & Party</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-check"></i>
+                            </div>
+                            <div class="small mt-1">Time</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-check"></i>
+                            </div>
+                            <div class="small mt-1">Table</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">4</div>
+                            <div class="small mt-1">Details</div>
+                        </div>
+                    </div>
+
+                    <form asp-action="Confirm" method="post">
+                        <input type="hidden" asp-for="BranchId" />
+                        <input type="hidden" asp-for="TableId" />
+                        <input type="hidden" asp-for="PartySize" />
+                        <input type="hidden" asp-for="BookingDate" />
+                        <input type="hidden" asp-for="BookingTime" />
+                        
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="GuestName" class="form-label">Full Name *</label>
+                                <input asp-for="GuestName" class="form-control" placeholder="John Doe" />
+                                <span asp-validation-for="GuestName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="GuestEmail" class="form-label">Email *</label>
+                                <input asp-for="GuestEmail" class="form-control" type="email" placeholder="john@example.com" />
+                                <span asp-validation-for="GuestEmail" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="GuestPhone" class="form-label">Phone</label>
+                                <input asp-for="GuestPhone" class="form-control" type="tel" placeholder="+1 (555) 000-0000" />
+                                <span asp-validation-for="GuestPhone" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Occasion" class="form-label">Occasion</label>
+                                <select asp-for="Occasion" class="form-select" asp-items="Html.GetEnumSelectList<RestaurantReservation.Web.Models.Entities.OccasionType>()">
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="CouponCode" class="form-label">Coupon Code</label>
+                                <div class="input-group">
+                                    <input asp-for="CouponCode" class="form-control" placeholder="Enter code" />
+                                    <button type="button" class="btn btn-outline-secondary" id="validateCoupon">Apply</button>
+                                </div>
+                                <div id="couponMessage" class="small mt-1"></div>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="SpecialRequests" class="form-label">Special Requests</label>
+                                <textarea asp-for="SpecialRequests" class="form-control" rows="3" 
+                                          placeholder="Any dietary requirements, accessibility needs, or special requests..."></textarea>
+                            </div>
+                        </div>
+
+                        @if (Model.RequireDeposit && Model.DepositAmount.HasValue)
+                        {
+                            <div class="alert alert-warning mt-4">
+                                <h6><i class="bi bi-credit-card me-2"></i>Deposit Required</h6>
+                                <p class="mb-0">A deposit of <strong>$@Model.DepositAmount.Value.ToString("0.00")</strong> is required to confirm this booking.</p>
+                            </div>
+                        }
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                                <i class="bi bi-arrow-left me-1"></i>Back
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                <i class="bi bi-check-circle me-2"></i>Confirm Booking
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('validateCoupon').addEventListener('click', function() {
+            const code = document.querySelector('[name="CouponCode"]').value;
+            const branchId = @Model.BranchId;
+            const messageDiv = document.getElementById('couponMessage');
+            
+            if (!code) {
+                messageDiv.innerHTML = '<span class="text-danger">Please enter a coupon code</span>';
+                return;
+            }
+            
+            fetch('/Bookings/ValidateCoupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `code=${encodeURIComponent(code)}&branchId=${branchId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    messageDiv.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>${data.description}</span>`;
+                } else {
+                    messageDiv.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle me-1"></i>${data.message}</span>`;
+                }
+            });
+        });
+    </script>
+}

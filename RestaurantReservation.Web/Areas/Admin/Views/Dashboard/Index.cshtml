@@ -1,0 +1,240 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a asp-controller="Bookings" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-calendar-check me-1"></i>View Bookings
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1 opacity-75">Today's Bookings</h6>
+                        <h2 class="mb-0">@Model.TodayBookings</h2>
+                    </div>
+                    <i class="bi bi-calendar-check fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card bg-warning text-dark h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1 opacity-75">Pending</h6>
+                        <h2 class="mb-0">@Model.PendingBookings</h2>
+                    </div>
+                    <i class="bi bi-hourglass-split fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1 opacity-75">Total Bookings</h6>
+                        <h2 class="mb-0">@Model.TotalBookings</h2>
+                    </div>
+                    <i class="bi bi-graph-up fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1 opacity-75">Pending Reviews</h6>
+                        <h2 class="mb-0">@Model.PendingReviews</h2>
+                    </div>
+                    <i class="bi bi-star-half fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Today's Revenue</h6>
+                        <h3 class="mb-0 text-success">$@Model.TodayRevenue.ToString("N2")</h3>
+                    </div>
+                    <i class="bi bi-cash-stack fs-1 text-success opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Monthly Revenue</h6>
+                        <h3 class="mb-0 text-primary">$@Model.MonthlyRevenue.ToString("N2")</h3>
+                    </div>
+                    <i class="bi bi-graph-up-arrow fs-1 text-primary opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Bookings -->
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Recent Bookings</h5>
+                <a asp-controller="Bookings" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.RecentBookings.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Guest</th>
+                                    <th>Date/Time</th>
+                                    <th>Party</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var booking in Model.RecentBookings)
+                                {
+                                    <tr>
+                                        <td><code>@booking.BookingReference</code></td>
+                                        <td>@booking.GuestName</td>
+                                        <td>
+                                            @booking.BookingDate.ToString("MMM d") <br>
+                                            <small class="text-muted">@booking.BookingTime.ToString(@"hh\:mm")</small>
+                                        </td>
+                                        <td>@booking.PartySize</td>
+                                        <td>
+                                            <span class="badge bg-@(booking.Status switch {
+                                                BookingStatus.Confirmed => "success",
+                                                BookingStatus.Pending => "warning",
+                                                BookingStatus.Cancelled => "danger",
+                                                BookingStatus.Completed => "info",
+                                                _ => "secondary"
+                                            })">@booking.Status</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <p class="mt-2">No recent bookings</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Reviews -->
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-star me-2"></i>Recent Reviews</h5>
+                <a asp-controller="Reviews" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentReviews.Any())
+                {
+                    @foreach (var review in Model.RecentReviews)
+                    {
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <strong>@review.GuestName</strong>
+                                @if (!review.IsApproved)
+                                {
+                                    <span class="badge bg-warning">Pending</span>
+                                }
+                            </div>
+                            <div class="mb-1">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= review.Rating)
+                                    {
+                                        <i class="bi bi-star-fill text-warning small"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-star text-warning small"></i>
+                                    }
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(review.Comment))
+                            {
+                                <p class="small text-muted mb-0">@(review.Comment.Length > 100 ? review.Comment.Substring(0, 100) + "..." : review.Comment)</p>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-chat-square-text fs-1"></i>
+                        <p class="mt-2">No recent reviews</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 border-end">
+                        <h4 class="mb-0">@Model.TotalRestaurants</h4>
+                        <small class="text-muted">Restaurants</small>
+                    </div>
+                    <div class="col-md-3 border-end">
+                        <h4 class="mb-0">@Model.TotalBranches</h4>
+                        <small class="text-muted">Branches</small>
+                    </div>
+                    <div class="col-md-3 border-end">
+                        <h4 class="mb-0">@Model.TotalBookings</h4>
+                        <small class="text-muted">Total Bookings</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="mb-0">@Model.PendingReviews</h4>
+                        <small class="text-muted">Pending Reviews</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

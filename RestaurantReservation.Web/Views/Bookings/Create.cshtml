@@ -1,0 +1,131 @@
+@model RestaurantReservation.Web.Models.ViewModels.BookingViewModel
+@{
+    ViewData["Title"] = "Make a Reservation";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Restaurants" asp-action="Branch" asp-route-id="@Model.BranchId">@Model.BranchName</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Book a Table</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-calendar-plus me-2"></i>Make a Reservation</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        <strong>@Model.RestaurantName - @Model.BranchName</strong>
+                    </p>
+
+                    <!-- Progress Steps -->
+                    <div class="d-flex justify-content-between mb-4">
+                        <div class="text-center flex-fill">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">1</div>
+                            <div class="small mt-1">Date & Party</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">2</div>
+                            <div class="small mt-1">Time</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">3</div>
+                            <div class="small mt-1">Table</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">4</div>
+                            <div class="small mt-1">Details</div>
+                        </div>
+                    </div>
+
+                    <form asp-action="SelectTime" method="post">
+                        <input type="hidden" asp-for="BranchId" />
+                        
+                        <div class="mb-4">
+                            <label asp-for="PartySize" class="form-label fw-bold">
+                                <i class="bi bi-people me-1"></i>Party Size
+                            </label>
+                            <select asp-for="PartySize" class="form-select form-select-lg">
+                                @for (int i = 1; i <= 20; i++)
+                                {
+                                    <option value="@i">@i @(i == 1 ? "Guest" : "Guests")</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="BookingDate" class="form-label fw-bold">
+                                <i class="bi bi-calendar me-1"></i>Date
+                            </label>
+                            <input type="date" asp-for="BookingDate" class="form-control form-control-lg" 
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" 
+                                   max="@DateTime.Today.AddMonths(2).ToString("yyyy-MM-dd")" />
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Check Availability <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Calendar Preview -->
+            <div class="card shadow mt-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-calendar3 me-2"></i>Availability Calendar</h5>
+                    <div id="availabilityCalendar" class="text-center py-3">
+                        <p class="text-muted">Select party size and date to see available time slots</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const branchId = @Model.BranchId;
+            const partySizeSelect = document.querySelector('[name="PartySize"]');
+            
+            partySizeSelect.addEventListener('change', loadAvailability);
+            
+            function loadAvailability() {
+                const partySize = partySizeSelect.value;
+                
+                fetch(`/Bookings/GetAvailabilityCalendar?branchId=${branchId}&partySize=${partySize}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let html = '<div class="row g-2">';
+                        data.forEach(day => {
+                            const date = new Date(day.date);
+                            const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                            const dayNum = date.getDate();
+                            const hasAvail = day.hasAvailability;
+                            
+                            html += `<div class="col-auto">
+                                <div class="p-2 border rounded text-center ${hasAvail ? 'bg-success text-white' : 'bg-light text-muted'}" style="min-width: 60px;">
+                                    <small>${dayName}</small><br>
+                                    <strong>${dayNum}</strong>
+                                </div>
+                            </div>`;
+                        });
+                        html += '</div>';
+                        document.getElementById('availabilityCalendar').innerHTML = html;
+                    })
+                    .catch(err => {
+                        console.error('Error loading availability:', err);
+                    });
+            }
+            
+            loadAvailability();
+        });
+    </script>
+}

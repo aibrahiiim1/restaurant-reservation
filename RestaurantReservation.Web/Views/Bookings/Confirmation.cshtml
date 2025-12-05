@@ -1,0 +1,157 @@
+@model RestaurantReservation.Web.Models.ViewModels.BookingConfirmationViewModel
+@{
+    ViewData["Title"] = "Booking Confirmed";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow text-center">
+                <div class="card-body p-5">
+                    @if (Model.Status == RestaurantReservation.Web.Models.Entities.BookingStatus.Confirmed || 
+                         Model.Status == RestaurantReservation.Web.Models.Entities.BookingStatus.Pending)
+                    {
+                        <div class="mb-4">
+                            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="bi bi-check-lg fs-1"></i>
+                            </div>
+                        </div>
+                        <h2 class="mb-3">Booking @(Model.Status == RestaurantReservation.Web.Models.Entities.BookingStatus.Confirmed ? "Confirmed" : "Received")!</h2>
+                    }
+                    else if (Model.Status == RestaurantReservation.Web.Models.Entities.BookingStatus.Cancelled)
+                    {
+                        <div class="mb-4">
+                            <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="bi bi-x-lg fs-1"></i>
+                            </div>
+                        </div>
+                        <h2 class="mb-3">Booking Cancelled</h2>
+                    }
+                    else
+                    {
+                        <div class="mb-4">
+                            <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="bi bi-calendar-check fs-1"></i>
+                            </div>
+                        </div>
+                        <h2 class="mb-3">Booking Details</h2>
+                    }
+
+                    <p class="text-muted mb-4">
+                        Thank you, <strong>@Model.GuestName</strong>! A confirmation has been sent to your email.
+                    </p>
+
+                    <!-- Booking Reference -->
+                    <div class="bg-light rounded p-3 mb-4">
+                        <small class="text-muted d-block mb-1">Booking Reference</small>
+                        <h3 class="mb-0 font-monospace">@Model.BookingReference</h3>
+                    </div>
+
+                    <!-- QR Code -->
+                    @if (!string.IsNullOrEmpty(Model.QrCodeUrl))
+                    {
+                        <div class="mb-4">
+                            <p class="text-muted small mb-2">Show this QR code at the restaurant</p>
+                            <img src="@Model.QrCodeUrl" alt="Booking QR Code" class="img-fluid" style="max-width: 200px;">
+                        </div>
+                    }
+
+                    <!-- Booking Details -->
+                    <div class="text-start">
+                        <hr>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Restaurant</small>
+                                <strong>@Model.RestaurantName</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Branch</small>
+                                <strong>@Model.BranchName</strong>
+                            </div>
+                            <div class="col-12">
+                                <small class="text-muted d-block">Address</small>
+                                <strong>@Model.Address</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Date</small>
+                                <strong>@Model.BookingDate.ToString("dddd, MMM d, yyyy")</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Time</small>
+                                <strong>@Model.BookingTime.ToString(@"hh\:mm tt")</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Party Size</small>
+                                <strong>@Model.PartySize guests</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Table</small>
+                                <strong>@Model.TableNumber</strong>
+                            </div>
+                            <div class="col-12">
+                                <small class="text-muted d-block">Status</small>
+                                <span class="badge bg-@(Model.Status switch {
+                                    RestaurantReservation.Web.Models.Entities.BookingStatus.Confirmed => "success",
+                                    RestaurantReservation.Web.Models.Entities.BookingStatus.Pending => "warning",
+                                    RestaurantReservation.Web.Models.Entities.BookingStatus.Cancelled => "danger",
+                                    RestaurantReservation.Web.Models.Entities.BookingStatus.Completed => "info",
+                                    RestaurantReservation.Web.Models.Entities.BookingStatus.NoShow => "dark",
+                                    _ => "secondary"
+                                })">@Model.Status</span>
+                            </div>
+                        </div>
+                        <hr>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-grid gap-2">
+                        @if (Model.CanModify)
+                        {
+                            <a href="#" class="btn btn-outline-primary">
+                                <i class="bi bi-pencil me-2"></i>Modify Booking
+                            </a>
+                        }
+                        @if (Model.CanCancel)
+                        {
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                <i class="bi bi-x-circle me-2"></i>Cancel Booking
+                            </button>
+                        }
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                            <i class="bi bi-house me-2"></i>Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+@if (Model.CanCancel)
+{
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="Cancel" method="post">
+                    <input type="hidden" name="id" value="@Model.BookingReference" />
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cancelModalLabel">Cancel Booking</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to cancel this booking?</p>
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Reason for cancellation (optional)</label>
+                            <textarea name="reason" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Booking</button>
+                        <button type="submit" class="btn btn-danger">Yes, Cancel Booking</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

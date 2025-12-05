@@ -1,0 +1,140 @@
+@model IEnumerable<Table>
+@{
+    ViewData["Title"] = "Table Layout - " + ViewBag.BranchName;
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <div>
+        <h1 class="h2"><i class="bi bi-grid me-2"></i>Table Layout</h1>
+        <small class="text-muted">@ViewBag.BranchName</small>
+    </div>
+    <div class="btn-group">
+        <button id="saveLayout" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>Save Layout
+        </button>
+        <a asp-action="Index" asp-route-branchId="@ViewBag.BranchId" class="btn btn-outline-secondary">
+            <i class="bi bi-list me-1"></i>List View
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div id="layout-container" class="border rounded bg-light position-relative" style="width: 100%; height: 600px; overflow: auto;">
+            @foreach (var table in Model)
+            {
+                var x = 50;
+                var y = 50;
+                var w = 80;
+                var h = 80;
+                
+                if (!string.IsNullOrEmpty(table.LayoutJson))
+                {
+                    try
+                    {
+                        var layout = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(table.LayoutJson);
+                        x = layout.GetProperty("x").GetInt32();
+                        y = layout.GetProperty("y").GetInt32();
+                        if (layout.TryGetProperty("width", out var wProp)) w = wProp.GetInt32();
+                        if (layout.TryGetProperty("height", out var hProp)) h = hProp.GetInt32();
+                    }
+                    catch { }
+                }
+                
+                <div class="table-item position-absolute rounded shadow-sm d-flex flex-column align-items-center justify-content-center text-center cursor-move"
+                     data-id="@table.Id"
+                     style="left: @(x)px; top: @(y)px; width: @(w)px; height: @(h)px; background-color: @(table.LocationType switch {
+                         TableLocationType.Indoor => "#0d6efd",
+                         TableLocationType.Outdoor => "#198754",
+                         TableLocationType.Terrace => "#ffc107",
+                         _ => "#6c757d"
+                     }); color: @(table.LocationType == TableLocationType.Terrace ? "#000" : "#fff"); cursor: move;">
+                    <strong>@table.TableNumber</strong>
+                    <small>@table.MinCapacity-@table.MaxCapacity</small>
+                </div>
+            }
+        </div>
+        
+        <div class="mt-3">
+            <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>Drag tables to position them on the floor plan. Click Save Layout to persist changes.
+            </small>
+        </div>
+        
+        <!-- Legend -->
+        <div class="mt-3">
+            <span class="badge bg-secondary me-2">Standard</span>
+            <span class="badge bg-primary me-2">Indoor</span>
+            <span class="badge bg-success me-2">Outdoor</span>
+            <span class="badge bg-warning text-dark me-2">Terrace</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make tables draggable
+            interact('.table-item').draggable({
+                inertia: true,
+                modifiers: [
+                    interact.modifiers.restrictRect({
+                        restriction: 'parent',
+                        endOnly: true
+                    })
+                ],
+                autoScroll: true,
+                listeners: {
+                    move: dragMoveListener
+                }
+            });
+            
+            function dragMoveListener(event) {
+                var target = event.target;
+                var x = (parseFloat(target.style.left) || 0) + event.dx;
+                var y = (parseFloat(target.style.top) || 0) + event.dy;
+                
+                target.style.left = x + 'px';
+                target.style.top = y + 'px';
+            }
+            
+            // Save layout
+            document.getElementById('saveLayout').addEventListener('click', function() {
+                var tables = document.querySelectorAll('.table-item');
+                var updates = [];
+                
+                tables.forEach(function(table) {
+                    updates.push({
+                        id: parseInt(table.dataset.id),
+                        x: parseInt(table.style.left),
+                        y: parseInt(table.style.top),
+                        width: parseInt(table.style.width),
+                        height: parseInt(table.style.height)
+                    });
+                });
+                
+                fetch('@Url.Action("UpdateLayout", "Tables", new { area = "Admin" })', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify(updates)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Layout saved successfully!');
+                    } else {
+                        alert('Failed to save layout.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while saving.');
+                });
+            });
+        });
+    </script>
+}

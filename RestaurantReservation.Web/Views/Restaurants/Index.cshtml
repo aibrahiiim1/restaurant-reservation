@@ -1,0 +1,118 @@
+@model List<RestaurantReservation.Web.Models.ViewModels.BranchSummaryViewModel>
+@{
+    ViewData["Title"] = "Browse Restaurants";
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-3"><i class="bi bi-shop me-2"></i>Browse Restaurants</h1>
+            
+            <!-- Filters -->
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Search..." value="@ViewBag.SearchTerm">
+                </div>
+                <div class="col-md-3">
+                    <select name="cuisine" class="form-select">
+                        <option value="">All Cuisines</option>
+                        @if (ViewBag.Cuisines != null)
+                        {
+                            foreach (var cuisine in ViewBag.Cuisines)
+                            {
+                                <option value="@cuisine" selected="@(ViewBag.CurrentCuisine == cuisine)">@cuisine</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="city" class="form-select">
+                        <option value="">All Cities</option>
+                        @if (ViewBag.Cities != null)
+                        {
+                            foreach (var city in ViewBag.Cities)
+                            {
+                                <option value="@city" selected="@(ViewBag.CurrentCity == city)">@city</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-filter me-1"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var branch in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        @if (!string.IsNullOrEmpty(branch.PhotoUrl))
+                        {
+                            <img src="@branch.PhotoUrl" class="card-img-top" alt="@branch.Name" style="height: 200px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="bi bi-building text-white" style="font-size: 3rem;"></i>
+                            </div>
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">@branch.Name</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="bi bi-geo-alt me-1"></i>@branch.City
+                                </small>
+                            </p>
+                            @if (!string.IsNullOrEmpty(branch.Cuisine))
+                            {
+                                <p class="card-text">
+                                    <span class="badge bg-secondary">@branch.Cuisine</span>
+                                </p>
+                            }
+                            <div class="d-flex align-items-center mb-2">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= Math.Round(branch.AverageRating))
+                                    {
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-star text-warning"></i>
+                                    }
+                                }
+                                <span class="ms-2 text-muted small">@branch.AverageRating.ToString("0.0") (@branch.ReviewCount)</span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-grid gap-2">
+                                <a asp-action="Branch" asp-route-id="@branch.Id" class="btn btn-outline-primary">
+                                    View Details
+                                </a>
+                                <a asp-controller="Bookings" asp-action="Create" asp-route-branchId="@branch.Id" class="btn btn-primary">
+                                    <i class="bi bi-calendar-plus me-1"></i>Book Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-search display-1 text-muted"></i>
+            <h4 class="mt-3">No restaurants found</h4>
+            <p class="text-muted">Try adjusting your search criteria</p>
+            <a href="@Url.Action("Index")" class="btn btn-primary">Clear Filters</a>
+        </div>
+    }
+</div>

@@ -1,0 +1,190 @@
+@model Review
+@{
+    ViewData["Title"] = "Review Details";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-star me-2"></i>Review Details</h1>
+    <div class="btn-group">
+        <a asp-action="Moderate" asp-route-id="@Model.Id" class="btn btn-primary">
+            <i class="bi bi-pencil me-1"></i>Moderate
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-chat-quote me-2"></i>Review Content</h5>
+                <div>
+                    @if (Model.IsApproved)
+                    {
+                        <span class="badge bg-success">Approved</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning">Pending</span>
+                    }
+                    @if (Model.IsVisible)
+                    {
+                        <span class="badge bg-info">Visible</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Hidden</span>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <label class="text-muted small">Rating</label>
+                    <div class="fs-4">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            if (i <= Model.Rating)
+                            {
+                                <i class="bi bi-star-fill text-warning"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-star text-warning"></i>
+                            }
+                        }
+                        <span class="ms-2 text-muted">(@Model.Rating/5)</span>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="text-muted small">Comment</label>
+                    <div class="p-3 bg-light rounded">
+                        @if (!string.IsNullOrEmpty(Model.Comment))
+                        {
+                            <p class="mb-0">@Model.Comment</p>
+                        }
+                        else
+                        {
+                            <p class="mb-0 text-muted fst-italic">No comment provided</p>
+                        }
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.AdminResponse))
+                {
+                    <div class="mb-4">
+                        <label class="text-muted small">Admin Response</label>
+                        <div class="p-3 bg-info bg-opacity-10 rounded border-start border-4 border-info">
+                            <p class="mb-0">@Model.AdminResponse</p>
+                            @if (Model.AdminResponseAt.HasValue)
+                            {
+                                <small class="text-muted">Responded on @Model.AdminResponseAt.Value.ToString("MMM d, yyyy")</small>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <!-- Guest Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person me-2"></i>Guest Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Name</dt>
+                    <dd class="col-sm-8">@Model.GuestName</dd>
+                </dl>
+            </div>
+        </div>
+        
+        @if (Model.Booking != null)
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Associated Booking</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Reference</dt>
+                        <dd class="col-sm-8">
+                            <a asp-controller="Bookings" asp-action="Details" asp-route-id="@Model.BookingId">
+                                @Model.Booking.BookingReference
+                            </a>
+                        </dd>
+                        
+                        <dt class="col-sm-4">Date</dt>
+                        <dd class="col-sm-8">@Model.Booking.BookingDate.ToString("MMM d, yyyy")</dd>
+                    </dl>
+                </div>
+            </div>
+        }
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Branch Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-shop me-2"></i>Branch</h5>
+            </div>
+            <div class="card-body">
+                <h6>@Model.Branch?.Restaurant?.Name</h6>
+                <p class="mb-0 text-muted">@Model.Branch?.Name</p>
+            </div>
+        </div>
+        
+        <!-- Timeline -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Timeline</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item px-0 d-flex justify-content-between">
+                        <span>Submitted</span>
+                        <span class="text-muted">@Model.CreatedAt.ToString("MMM d, yyyy")</span>
+                    </li>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span>Last Updated</span>
+                            <span class="text-muted">@Model.UpdatedAt.Value.ToString("MMM d, yyyy")</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a asp-action="Moderate" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil me-1"></i>Moderate Review
+                    </a>
+                    @if (!Model.IsApproved)
+                    {
+                        <form asp-action="Approve" asp-route-id="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-check-lg me-1"></i>Approve
+                            </button>
+                        </form>
+                        <form asp-action="Reject" asp-route-id="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="bi bi-x-lg me-1"></i>Reject
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

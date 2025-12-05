@@ -1,0 +1,131 @@
+@model TableCreateViewModel
+@{
+    ViewData["Title"] = "Create Table";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <div>
+        <h1 class="h2"><i class="bi bi-plus-circle me-2"></i>Create Table</h1>
+        <small class="text-muted">@Model.BranchName</small>
+    </div>
+    <a asp-action="Index" asp-route-branchId="@Model.BranchId" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Tables
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="BranchId" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="TableNumber" class="form-label">Table Number <span class="text-danger">*</span></label>
+                            <input asp-for="TableNumber" class="form-control" placeholder="e.g., T1, A1, 101" />
+                            <span asp-validation-for="TableNumber" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LocationType" class="form-label">Location Type</label>
+                            <select asp-for="LocationType" asp-items="Html.GetEnumSelectList<TableLocationType>()" class="form-select"></select>
+                            <span asp-validation-for="LocationType" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="MinCapacity" class="form-label">Minimum Capacity <span class="text-danger">*</span></label>
+                            <input asp-for="MinCapacity" class="form-control" type="number" min="1" max="50" />
+                            <small class="text-muted">Minimum number of guests</small>
+                            <span asp-validation-for="MinCapacity" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="MaxCapacity" class="form-label">Maximum Capacity <span class="text-danger">*</span></label>
+                            <input asp-for="MaxCapacity" class="form-control" type="number" min="1" max="50" />
+                            <small class="text-muted">Maximum number of guests</small>
+                            <span asp-validation-for="MaxCapacity" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="2" placeholder="e.g., Corner booth with great view, Near the window"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Photos" class="form-label">Photos</label>
+                        <input asp-for="Photos" class="form-control" type="file" accept="image/*" multiple />
+                        <small class="text-muted">Upload photos of this table area</small>
+                        <span asp-validation-for="Photos" class="text-danger"></span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5><i class="bi bi-grid me-2"></i>Layout Position (Optional)</h5>
+                    <p class="text-muted small">Set position for visual floor plan. Leave empty to set later.</p>
+                    
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="LayoutX" class="form-label">X Position</label>
+                            <input asp-for="LayoutX" class="form-control" type="number" min="0" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="LayoutY" class="form-label">Y Position</label>
+                            <input asp-for="LayoutY" class="form-control" type="number" min="0" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="LayoutWidth" class="form-label">Width</label>
+                            <input asp-for="LayoutWidth" class="form-control" type="number" min="40" value="80" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="LayoutHeight" class="form-label">Height</label>
+                            <input asp-for="LayoutHeight" class="form-control" type="number" min="40" value="80" />
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Create Table
+                        </button>
+                        <a asp-action="Index" asp-route-branchId="@Model.BranchId" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-info-circle me-2"></i>Tips</h5>
+                <ul class="mb-0 ps-3">
+                    <li>Use a consistent numbering scheme (T1, T2... or A1, A2...)</li>
+                    <li>Set accurate capacity for proper booking suggestions</li>
+                    <li>Location type helps guests choose preferred seating</li>
+                    <li>Add photos to help staff identify tables</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-grid me-2"></i>Location Types</h5>
+                <ul class="list-unstyled mb-0">
+                    <li><span class="badge bg-secondary me-2">Standard</span> Regular indoor seating</li>
+                    <li class="mt-2"><span class="badge bg-info me-2">Indoor</span> Specifically indoor area</li>
+                    <li class="mt-2"><span class="badge bg-success me-2">Outdoor</span> Garden/patio area</li>
+                    <li class="mt-2"><span class="badge bg-warning me-2">Terrace</span> Balcony/terrace seating</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

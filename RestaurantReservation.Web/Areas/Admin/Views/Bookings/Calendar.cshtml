@@ -1,0 +1,132 @@
+@{
+    ViewData["Title"] = "Booking Calendar";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-calendar3 me-2"></i>Booking Calendar</h1>
+    <div class="btn-group">
+        <a asp-action="Index" asp-route-branchId="@ViewBag.CurrentBranchId" class="btn btn-outline-secondary">
+            <i class="bi bi-list me-1"></i>List View
+        </a>
+    </div>
+</div>
+
+<!-- Branch Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Select Branch</label>
+                <select asp-items="@ViewBag.Branches" name="branchId" class="form-select" id="branchSelect">
+                    <option value="">Select a branch</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel me-1"></i>Load Calendar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (ViewBag.CurrentBranchId != null)
+{
+    <div class="card">
+        <div class="card-body">
+            <div id="calendar"></div>
+        </div>
+    </div>
+    
+    <!-- Event Detail Modal -->
+    <div class="modal fade" id="eventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Booking Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <dl class="row mb-0">
+                        <dt class="col-4">Reference</dt>
+                        <dd class="col-8" id="modalReference"></dd>
+                        
+                        <dt class="col-4">Guest</dt>
+                        <dd class="col-8" id="modalGuest"></dd>
+                        
+                        <dt class="col-4">Email</dt>
+                        <dd class="col-8" id="modalEmail"></dd>
+                        
+                        <dt class="col-4">Party Size</dt>
+                        <dd class="col-8" id="modalPartySize"></dd>
+                        
+                        <dt class="col-4">Table</dt>
+                        <dd class="col-8" id="modalTable"></dd>
+                        
+                        <dt class="col-4">Status</dt>
+                        <dd class="col-8" id="modalStatus"></dd>
+                    </dl>
+                </div>
+                <div class="modal-footer">
+                    <a id="viewBookingLink" href="#" class="btn btn-primary">View Details</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-calendar3 fs-1 text-muted"></i>
+            <p class="mt-3 text-muted">Please select a branch to view the booking calendar</p>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    
+    @if (ViewBag.CurrentBranchId != null)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var calendarEl = document.getElementById('calendar');
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'timeGridWeek',
+                    initialDate: '@(ViewBag.CurrentDate?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    slotMinTime: '08:00:00',
+                    slotMaxTime: '24:00:00',
+                    allDaySlot: false,
+                    events: function(info, successCallback, failureCallback) {
+                        fetch('@Url.Action("GetCalendarEvents", "Bookings", new { area = "Admin" })?branchId=@ViewBag.CurrentBranchId&start=' + info.startStr + '&end=' + info.endStr)
+                            .then(response => response.json())
+                            .then(data => successCallback(data))
+                            .catch(error => failureCallback(error));
+                    },
+                    eventClick: function(info) {
+                        var props = info.event.extendedProps;
+                        document.getElementById('modalReference').textContent = props.bookingReference;
+                        document.getElementById('modalGuest').textContent = props.guestName;
+                        document.getElementById('modalEmail').textContent = props.guestEmail;
+                        document.getElementById('modalPartySize').textContent = props.partySize;
+                        document.getElementById('modalTable').textContent = props.tableNumber;
+                        document.getElementById('modalStatus').textContent = props.status;
+                        document.getElementById('viewBookingLink').href = '@Url.Action("Details", "Bookings", new { area = "Admin" })/' + info.event.id;
+                        
+                        var modal = new bootstrap.Modal(document.getElementById('eventModal'));
+                        modal.show();
+                    }
+                });
+                calendar.render();
+            });
+        </script>
+    }
+}

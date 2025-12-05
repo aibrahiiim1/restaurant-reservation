@@ -1,0 +1,157 @@
+@model TableEditViewModel
+@{
+    ViewData["Title"] = "Edit Table " + Model.TableNumber;
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <div>
+        <h1 class="h2"><i class="bi bi-pencil me-2"></i>Edit Table @Model.TableNumber</h1>
+        <small class="text-muted">@Model.BranchName</small>
+    </div>
+    <a asp-action="Index" asp-route-branchId="@Model.BranchId" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Tables
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="BranchId" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="TableNumber" class="form-label">Table Number <span class="text-danger">*</span></label>
+                            <input asp-for="TableNumber" class="form-control" />
+                            <span asp-validation-for="TableNumber" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LocationType" class="form-label">Location Type</label>
+                            <select asp-for="LocationType" asp-items="Html.GetEnumSelectList<TableLocationType>()" class="form-select"></select>
+                            <span asp-validation-for="LocationType" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="MinCapacity" class="form-label">Minimum Capacity <span class="text-danger">*</span></label>
+                            <input asp-for="MinCapacity" class="form-control" type="number" min="1" max="50" />
+                            <span asp-validation-for="MinCapacity" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="MaxCapacity" class="form-label">Maximum Capacity <span class="text-danger">*</span></label>
+                            <input asp-for="MaxCapacity" class="form-control" type="number" min="1" max="50" />
+                            <span asp-validation-for="MaxCapacity" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsActive" class="form-check-label">Active</label>
+                        </div>
+                        <small class="text-muted">Inactive tables won't appear in booking options</small>
+                    </div>
+                    
+                    @if (Model.CurrentPhotoUrls?.Any() == true)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Current Photos</label>
+                            <div class="row g-2">
+                                @foreach (var photo in Model.CurrentPhotoUrls)
+                                {
+                                    <div class="col-3">
+                                        <img src="@photo" alt="Table photo" class="img-fluid rounded" style="height: 80px; width: 100%; object-fit: cover;">
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    
+                    <div class="mb-3">
+                        <label asp-for="Photos" class="form-label">Add More Photos</label>
+                        <input asp-for="Photos" class="form-control" type="file" accept="image/*" multiple />
+                        <span asp-validation-for="Photos" class="text-danger"></span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5><i class="bi bi-grid me-2"></i>Layout Position</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="LayoutX" class="form-label">X Position</label>
+                            <input asp-for="LayoutX" class="form-control" type="number" min="0" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="LayoutY" class="form-label">Y Position</label>
+                            <input asp-for="LayoutY" class="form-control" type="number" min="0" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="LayoutWidth" class="form-label">Width</label>
+                            <input asp-for="LayoutWidth" class="form-control" type="number" min="40" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="LayoutHeight" class="form-label">Height</label>
+                            <input asp-for="LayoutHeight" class="form-control" type="number" min="40" />
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Save Changes
+                        </button>
+                        <a asp-action="Index" asp-route-branchId="@Model.BranchId" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Table Info</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6">Table #</dt>
+                    <dd class="col-6">@Model.TableNumber</dd>
+                    
+                    <dt class="col-6">Capacity</dt>
+                    <dd class="col-6">@Model.MinCapacity - @Model.MaxCapacity</dd>
+                    
+                    <dt class="col-6">Location</dt>
+                    <dd class="col-6">@Model.LocationType</dd>
+                    
+                    <dt class="col-6">Status</dt>
+                    <dd class="col-6">
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

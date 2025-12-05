@@ -1,0 +1,371 @@
+@model RestaurantReservation.Web.Models.ViewModels.BranchViewModel
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="container py-4">
+    <!-- Branch Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Restaurants</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.RestaurantId">@Model.RestaurantName</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Photo Gallery -->
+    @if (Model.PhotoUrls.Any())
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div id="photoCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner rounded shadow">
+                        @for (int i = 0; i < Model.PhotoUrls.Count; i++)
+                        {
+                            <div class="carousel-item @(i == 0 ? "active" : "")">
+                                <img src="@Model.PhotoUrls[i]" class="d-block w-100" alt="@Model.Name" style="height: 400px; object-fit: cover;">
+                            </div>
+                        }
+                    </div>
+                    @if (Model.PhotoUrls.Count > 1)
+                    {
+                        <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h1 class="card-title mb-1">@Model.Name</h1>
+                            <p class="text-muted mb-0">@Model.RestaurantName</p>
+                        </div>
+                        <div class="text-end">
+                            <div class="d-flex align-items-center justify-content-end mb-1">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= Math.Round(Model.AverageRating))
+                                    {
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-star text-warning"></i>
+                                    }
+                                }
+                            </div>
+                            <small class="text-muted">@Model.AverageRating.ToString("0.0") (@Model.ReviewCount reviews)</small>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Cuisine))
+                    {
+                        <p><span class="badge bg-primary">@Model.Cuisine</span></p>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <p class="card-text">@Model.Description</p>
+                    }
+
+                    <hr>
+
+                    <!-- Details -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-geo-alt me-2"></i>Address</h6>
+                            <p class="mb-0">
+                                @Model.Address<br>
+                                @if (!string.IsNullOrEmpty(Model.City))
+                                {
+                                    <span>@Model.City, @Model.State @Model.ZipCode</span>
+                                }
+                            </p>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Phone))
+                        {
+                            <div class="col-md-6">
+                                <h6><i class="bi bi-telephone me-2"></i>Phone</h6>
+                                <p class="mb-0"><a href="tel:@Model.Phone">@Model.Phone</a></p>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Email))
+                        {
+                            <div class="col-md-6">
+                                <h6><i class="bi bi-envelope me-2"></i>Email</h6>
+                                <p class="mb-0"><a href="mailto:@Model.Email">@Model.Email</a></p>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Website))
+                        {
+                            <div class="col-md-6">
+                                <h6><i class="bi bi-globe me-2"></i>Website</h6>
+                                <p class="mb-0"><a href="@Model.Website" target="_blank">Visit Website</a></p>
+                            </div>
+                        }
+                    </div>
+
+                    <hr>
+
+                    <!-- Features -->
+                    <h6>Features</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (Model.HasParking)
+                        {
+                            <span class="badge bg-success"><i class="bi bi-p-circle me-1"></i>Parking</span>
+                        }
+                        @if (Model.IsAccessible)
+                        {
+                            <span class="badge bg-success"><i class="bi bi-universal-access me-1"></i>Accessible</span>
+                        }
+                        @if (Model.IsChildFriendly)
+                        {
+                            <span class="badge bg-success"><i class="bi bi-emoji-smile me-1"></i>Child Friendly</span>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.DressCode))
+                        {
+                            <span class="badge bg-info"><i class="bi bi-suit-club me-1"></i>@Model.DressCode</span>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.PaymentOptions))
+                        {
+                            <span class="badge bg-secondary"><i class="bi bi-credit-card me-1"></i>@Model.PaymentOptions</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map -->
+            @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-map me-2"></i>Location</h5>
+                        <div id="map" style="height: 300px; border-radius: 8px;"></div>
+                    </div>
+                </div>
+            }
+
+            <!-- Menus -->
+            @if (Model.Menus.Any())
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-menu-button-wide me-2"></i>Menu</h5>
+                        <ul class="nav nav-tabs" id="menuTabs" role="tablist">
+                            @for (int i = 0; i < Model.Menus.Count; i++)
+                            {
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link @(i == 0 ? "active" : "")" id="menu-@i-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#menu-@i" type="button" role="tab">
+                                        @Model.Menus[i].Name
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+                        <div class="tab-content pt-3" id="menuTabsContent">
+                            @for (int i = 0; i < Model.Menus.Count; i++)
+                            {
+                                var menu = Model.Menus[i];
+                                <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="menu-@i" role="tabpanel">
+                                    @foreach (var category in menu.Categories)
+                                    {
+                                        <h6 class="mt-3">@category.Name</h6>
+                                        @if (!string.IsNullOrEmpty(category.Description))
+                                        {
+                                            <p class="text-muted small">@category.Description</p>
+                                        }
+                                        <div class="list-group list-group-flush">
+                                            @foreach (var item in category.Items)
+                                            {
+                                                <div class="list-group-item d-flex justify-content-between align-items-start">
+                                                    <div class="ms-2 me-auto">
+                                                        <div class="fw-bold">
+                                                            @item.Name
+                                                            @if (item.IsPopular)
+                                                            {
+                                                                <span class="badge bg-danger ms-1">Popular</span>
+                                                            }
+                                                        </div>
+                                                        <small class="text-muted">@item.Description</small>
+                                                        <div class="mt-1">
+                                                            @if (item.IsVegetarian) { <span class="badge bg-success">V</span> }
+                                                            @if (item.IsVegan) { <span class="badge bg-success">VG</span> }
+                                                            @if (item.IsGlutenFree) { <span class="badge bg-warning text-dark">GF</span> }
+                                                            @if (item.IsSpicy) { <span class="badge bg-danger">🌶️</span> }
+                                                        </div>
+                                                    </div>
+                                                    <span class="badge bg-primary rounded-pill fs-6">$@item.Price.ToString("0.00")</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Reviews -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0"><i class="bi bi-chat-square-text me-2"></i>Reviews</h5>
+                        <a asp-action="Reviews" asp-route-branchId="@Model.Id" class="btn btn-sm btn-outline-primary">
+                            See All Reviews
+                        </a>
+                    </div>
+                    
+                    @if (Model.RecentReviews.Any())
+                    {
+                        @foreach (var review in Model.RecentReviews)
+                        {
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <strong>@review.GuestName</strong>
+                                    <small class="text-muted">@review.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                </div>
+                                <div class="mb-2">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= review.Rating)
+                                        {
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-star text-warning"></i>
+                                        }
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(review.Comment))
+                                {
+                                    <p class="mb-0">@review.Comment</p>
+                                }
+                                @if (!string.IsNullOrEmpty(review.AdminResponse))
+                                {
+                                    <div class="bg-light p-2 mt-2 rounded">
+                                        <small class="text-muted"><strong>Response:</strong> @review.AdminResponse</small>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No reviews yet. Be the first to leave a review!</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar - Booking Widget -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-calendar-check me-2"></i>Make a Reservation</h5>
+                    
+                    @if (Model.MinimumCharge.HasValue)
+                    {
+                        <div class="alert alert-info py-2">
+                            <small><i class="bi bi-info-circle me-1"></i>Minimum charge: $@Model.MinimumCharge.Value.ToString("0.00")</small>
+                        </div>
+                    }
+                    
+                    @if (Model.RequireDeposit && Model.DepositAmount.HasValue)
+                    {
+                        <div class="alert alert-warning py-2">
+                            <small><i class="bi bi-credit-card me-1"></i>Deposit required: $@Model.DepositAmount.Value.ToString("0.00")</small>
+                        </div>
+                    }
+
+                    <a asp-controller="Bookings" asp-action="Create" asp-route-branchId="@Model.Id" class="btn btn-primary btn-lg w-100 mb-3">
+                        <i class="bi bi-calendar-plus me-2"></i>Book a Table
+                    </a>
+
+                    <hr>
+
+                    <!-- Operating Hours -->
+                    @if (Model.OperatingHours != null)
+                    {
+                        <h6><i class="bi bi-clock me-2"></i>Operating Hours</h6>
+                        <ul class="list-unstyled small">
+                            @foreach (var day in new[] { "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday" })
+                            {
+                                if (Model.OperatingHours.TryGetValue(day, out var hours))
+                                {
+                                    <li class="d-flex justify-content-between">
+                                        <span class="text-capitalize">@day</span>
+                                        @if (hours.Closed)
+                                        {
+                                            <span class="text-danger">Closed</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@hours.Open - @hours.Close</span>
+                                        }
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    }
+
+                    <hr>
+
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Cancellation policy: @Model.CancellationPolicyHours hours before reservation
+                    </p>
+                </div>
+            </div>
+
+            <!-- Offers -->
+            @if (Model.ActiveOffers.Any())
+            {
+                <div class="card shadow-sm mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-gift me-2"></i>Special Offers</h5>
+                        @foreach (var offer in Model.ActiveOffers)
+                        {
+                            <div class="alert alert-success py-2 mb-2">
+                                <strong>@offer.Title</strong>
+                                @if (!string.IsNullOrEmpty(offer.Description))
+                                {
+                                    <br><small>@offer.Description</small>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+    {
+        <script>
+            // Simple map placeholder - integrate with Google Maps API
+            document.getElementById('map').innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 bg-light"><p class="text-muted"><i class="bi bi-geo-alt fs-1"></i><br>Map location: @Model.Latitude, @Model.Longitude</p></div>';
+        </script>
+    }
+}

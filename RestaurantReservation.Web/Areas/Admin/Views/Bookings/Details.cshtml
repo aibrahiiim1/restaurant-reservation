@@ -1,0 +1,219 @@
+@model Booking
+@{
+    ViewData["Title"] = "Booking " + Model.BookingReference;
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-calendar-check me-2"></i>Booking @Model.BookingReference
+    </h1>
+    <div class="btn-group">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+            <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Booking Details -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Booking Details</h5>
+                <span class="badge bg-@(Model.Status switch {
+                    BookingStatus.Confirmed => "success",
+                    BookingStatus.Pending => "warning",
+                    BookingStatus.Cancelled => "danger",
+                    BookingStatus.Completed => "info",
+                    BookingStatus.NoShow => "dark",
+                    _ => "secondary"
+                }) fs-6">@Model.Status</span>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Reference</dt>
+                    <dd class="col-sm-8"><code class="fs-5">@Model.BookingReference</code></dd>
+                    
+                    <dt class="col-sm-4">Date</dt>
+                    <dd class="col-sm-8">@Model.BookingDate.ToString("dddd, MMMM d, yyyy")</dd>
+                    
+                    <dt class="col-sm-4">Time</dt>
+                    <dd class="col-sm-8">@Model.BookingTime.ToString(@"h\:mm") - @Model.BookingTime.Add(TimeSpan.FromMinutes(Model.DurationMinutes)).ToString(@"h\:mm")</dd>
+                    
+                    <dt class="col-sm-4">Duration</dt>
+                    <dd class="col-sm-8">@Model.DurationMinutes minutes</dd>
+                    
+                    <dt class="col-sm-4">Party Size</dt>
+                    <dd class="col-sm-8"><i class="bi bi-people me-1"></i>@Model.PartySize guests</dd>
+                    
+                    <dt class="col-sm-4">Table</dt>
+                    <dd class="col-sm-8">@Model.Table?.TableNumber (@Model.Table?.LocationType)</dd>
+                    
+                    <dt class="col-sm-4">Branch</dt>
+                    <dd class="col-sm-8">@Model.Branch?.Name</dd>
+                    
+                    @if (Model.Occasion != OccasionType.None)
+                    {
+                        <dt class="col-sm-4">Occasion</dt>
+                        <dd class="col-sm-8">@Model.Occasion</dd>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(Model.SpecialRequests))
+                    {
+                        <dt class="col-sm-4">Special Requests</dt>
+                        <dd class="col-sm-8">@Model.SpecialRequests</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+        
+        <!-- Guest Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person me-2"></i>Guest Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Name</dt>
+                    <dd class="col-sm-8">@Model.GuestName</dd>
+                    
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">
+                        <a href="mailto:@Model.GuestEmail">@Model.GuestEmail</a>
+                        @if (Model.IsVerified)
+                        {
+                            <span class="badge bg-success ms-2">Verified</span>
+                        }
+                    </dd>
+                    
+                    @if (!string.IsNullOrEmpty(Model.GuestPhone))
+                    {
+                        <dt class="col-sm-4">Phone</dt>
+                        <dd class="col-sm-8">
+                            <a href="tel:@Model.GuestPhone">@Model.GuestPhone</a>
+                        </dd>
+                    }
+                </dl>
+            </div>
+        </div>
+        
+        <!-- Timeline -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Timeline</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item px-0 d-flex justify-content-between">
+                        <span>Created</span>
+                        <span class="text-muted">@Model.CreatedAt.ToString("MMM d, yyyy h:mm tt")</span>
+                    </li>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span>Last Updated</span>
+                            <span class="text-muted">@Model.UpdatedAt.Value.ToString("MMM d, yyyy h:mm tt")</span>
+                        </li>
+                    }
+                    @if (Model.Status == BookingStatus.Confirmed)
+                    {
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span>Confirmed</span>
+                            <span class="text-muted">@(Model.UpdatedAt?.ToString("MMM d, yyyy h:mm tt") ?? "—")</span>
+                        </li>
+                    }
+                    @if (Model.CancelledAt.HasValue)
+                    {
+                        <li class="list-group-item px-0 d-flex justify-content-between text-danger">
+                            <span>Cancelled</span>
+                            <span>@Model.CancelledAt.Value.ToString("MMM d, yyyy h:mm tt")</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    @if (Model.Status == BookingStatus.Pending)
+                    {
+                        <form asp-action="Confirm" asp-route-id="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-check-lg me-1"></i>Confirm Booking
+                            </button>
+                        </form>
+                    }
+                    
+                    @if (Model.Status != BookingStatus.Cancelled && Model.Status != BookingStatus.Completed)
+                    {
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                            <i class="bi bi-x-lg me-1"></i>Cancel Booking
+                        </button>
+                    }
+                    
+                    <hr>
+                    
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil me-1"></i>Edit Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Update -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Update Status</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+                    @Html.AntiForgeryToken()
+                    <select name="status" class="form-select">
+                        @foreach (var status in Enum.GetValues<BookingStatus>())
+                        {
+                            <option value="@status" selected="@(status == Model.Status)">@status</option>
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Booking</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="Cancel" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <p>Are you sure you want to cancel this booking?</p>
+                    <div class="mb-3">
+                        <label class="form-label">Reason (optional)</label>
+                        <textarea name="reason" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Cancel Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,99 @@
+@model RestaurantEditViewModel
+@{
+    ViewData["Title"] = "Edit Restaurant";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-pencil me-2"></i>Edit Restaurant</h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to List
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">Restaurant Name <span class="text-danger">*</span></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Email" class="form-label">Contact Email</label>
+                            <input asp-for="Email" class="form-control" type="email" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Website" class="form-label">Website URL</label>
+                            <input asp-for="Website" class="form-control" type="url" />
+                            <span asp-validation-for="Website" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Logo" class="form-label">Logo</label>
+                        @if (!string.IsNullOrEmpty(Model.CurrentLogoUrl))
+                        {
+                            <div class="mb-2">
+                                <img src="@Model.CurrentLogoUrl" alt="Current logo" class="rounded border" style="max-width: 100px; max-height: 100px;">
+                                <small class="d-block text-muted mt-1">Current logo - upload new file to replace</small>
+                            </div>
+                        }
+                        <input asp-for="Logo" class="form-control" type="file" accept="image/*" />
+                        <span asp-validation-for="Logo" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsActive" class="form-check-label">Active</label>
+                        </div>
+                        <small class="text-muted">Inactive restaurants won't appear on the public site</small>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Save Changes
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card bg-light mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-info-circle me-2"></i>Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info">
+                        <i class="bi bi-eye me-1"></i>View Details
+                    </a>
+                    <a asp-controller="Branches" asp-action="Index" asp-route-restaurantId="@Model.Id" class="btn btn-outline-primary">
+                        <i class="bi bi-shop me-1"></i>Manage Branches
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
